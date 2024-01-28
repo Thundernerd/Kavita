@@ -24,6 +24,7 @@ import { WebtoonImage } from '../../_models/webtoon-image';
 import { ManagaReaderService } from '../../_service/managa-reader.service';
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {TranslocoDirective} from "@ngneat/transloco";
+import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 
 /**
  * How much additional space should pass, past the original bottom of the document height before we trigger the next chapter load
@@ -58,7 +59,7 @@ const enum DEBUG_MODES {
     styleUrls: ['./infinite-scroller.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-  imports: [NgIf, NgFor, AsyncPipe, TranslocoDirective]
+  imports: [NgIf, NgFor, AsyncPipe, TranslocoDirective, InfiniteScrollModule]
 })
 export class InfiniteScrollerComponent implements OnInit, OnChanges, OnDestroy {
 
