@@ -21,6 +21,7 @@ using Kavita.Models.Constants;
 using Kavita.Models.DTOs.Settings;
 using Kavita.Models.Entities;
 using Kavita.Models.Entities.Enums;
+using Kavita.Services.Helpers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -74,8 +75,8 @@ public class SettingsService(
 
         existingMetadataSetting.AgeRatingMappings = dto.AgeRatingMappings ?? [];
 
-        existingMetadataSetting.Blacklist = (dto.Blacklist ?? []).Where(s => !string.IsNullOrWhiteSpace(s)).DistinctBy(d => d.ToNormalized()).ToList() ?? [];
-        existingMetadataSetting.Whitelist = (dto.Whitelist ?? []).Where(s => !string.IsNullOrWhiteSpace(s)).DistinctBy(d => d.ToNormalized()).ToList() ?? [];
+        existingMetadataSetting.Blacklist = TagHelper.SortAndCleanTagList(dto.Blacklist);
+        existingMetadataSetting.Whitelist = TagHelper.SortAndCleanTagList(dto.Whitelist);
         existingMetadataSetting.Overrides = [.. dto.Overrides ?? []];
         existingMetadataSetting.PersonRoles = dto.PersonRoles ?? [];
 
