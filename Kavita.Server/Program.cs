@@ -16,6 +16,7 @@ using Kavita.Server.Logging;
 using Kavita.Server.ManualMigrations.v0._7._14;
 using Kavita.Server.ManualMigrations.v0._8._2;
 using Kavita.Server.ManualMigrations.v0._8._4;
+using Kavita.Server.ManualMigrations.v0._9._1;
 using Kavita.Services;
 using Kavita.Services.SignalR;
 using Microsoft.AspNetCore.Hosting;
@@ -119,6 +120,9 @@ public class Program
                             logger.LogInformation("Running Manual Migrations - complete");
                         }).GetAwaiter()
                         .GetResult();
+
+                    // Must succeed before EF: live DBs that applied the original KoboSync migration cannot run AllowKoboSyncLibrary.
+                    await ManualMigrateLegacyKoboSyncSchema.Migrate(context, logger);
                 }
 
 
