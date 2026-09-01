@@ -6,14 +6,12 @@ import {SettingsService} from "../../admin/settings.service";
 import {WikiLink} from "../../_models/wiki";
 import {NgxDatatableModule} from "@siemens/ngx-datatable";
 import {AuthKey, AuthKeyProvider, KoboName, OpdsName} from "../../_models/user/auth-key";
-import {UtcToLocalDatePipe} from "../../_pipes/utc-to-locale-date.pipe";
 import {DefaultDatePipe} from "../../_pipes/default-date.pipe";
 import {ToggleVisibilityDirective} from "../../_directives/toggle-visibility.directive";
 import {ConfirmService} from "../../shared/confirm.service";
 import {CreateAuthKeyComponent} from "../_modals/create-auth-key/create-auth-key.component";
 import {Clipboard} from "@angular/cdk/clipboard";
-import {DatePipe} from "@angular/common";
-import {ToastrService} from "ngx-toastr";
+import {ToastrService} from '@openng/ngx-toastr';
 import {ResponsiveTableComponent} from "../../shared/_components/responsive-table/responsive-table.component";
 import {LoadingComponent} from "../../shared/loading/loading.component";
 import {EmptyStateComponent} from "../../shared/_components/empty-state/empty-state.component";
@@ -22,6 +20,7 @@ import {form, FormField} from "@angular/forms/signals";
 import {FormsModule} from "@angular/forms";
 import {RouterLink} from "@angular/router";
 import {SettingsTabId} from "../../sidenav/preference-nav/preference-nav.component";
+import {UtcToLocalTimePipe} from "../../_pipes/utc-to-local-time.pipe";
 
 @Component({
   selector: 'app-manage-auth-keys',
@@ -29,16 +28,15 @@ import {SettingsTabId} from "../../sidenav/preference-nav/preference-nav.compone
     ApiKeyComponent,
     TranslocoDirective,
     NgxDatatableModule,
-    UtcToLocalDatePipe,
     DefaultDatePipe,
     ToggleVisibilityDirective,
-    DatePipe,
     ResponsiveTableComponent,
     LoadingComponent,
     EmptyStateComponent,
     FormField,
     FormsModule,
     RouterLink,
+    UtcToLocalTimePipe,
   ],
   templateUrl: './manage-auth-keys.component.html',
   styleUrl: './manage-auth-keys.component.scss',
