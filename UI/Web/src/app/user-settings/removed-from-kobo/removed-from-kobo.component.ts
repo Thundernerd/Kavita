@@ -3,7 +3,7 @@ import {translate, TranslocoDirective} from '@jsverse/transloco';
 import {NgxDatatableModule} from '@siemens/ngx-datatable';
 import {DatePipe, APP_BASE_HREF} from '@angular/common';
 import {RouterLink} from '@angular/router';
-import {ToastrService} from 'ngx-toastr';
+import {ToastrService} from '@openng/ngx-toastr';
 import {AccountService} from '../../_services/account.service';
 import {ConfirmService} from '../../shared/confirm.service';
 import {KoboRemovedBook} from '../../_models/kobo/kobo-removed-book';
