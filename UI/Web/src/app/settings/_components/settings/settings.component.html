@@ -310,6 +310,14 @@
             }
           }
 
+          @case (SettingsTabId.RemovedFromKobo) {
+            @defer (prefetch on idle) {
+              <div class="scale col-md-12">
+                <app-removed-from-kobo />
+              </div>
+            }
+          }
+
           @case (SettingsTabId.Theme) {
             @defer {
               <div class="scale col-md-12">

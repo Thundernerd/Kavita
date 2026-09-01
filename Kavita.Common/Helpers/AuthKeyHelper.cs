@@ -11,6 +11,7 @@ public static class AuthKeyHelper
     public const int MaxKeyLength = 32;
     public const string OpdsKeyName = "opds";
     public const string ImageOnlyKeyName = "image-only";
+    public const string KoboKeyName = "kobo";
 
 
 

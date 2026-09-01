@@ -79,6 +79,7 @@ public class LibraryController(
             .WithManageReadingLists(dto.ManageReadingLists)
             .WithAllowScrobbling(dto.AllowScrobbling)
             .WithAllowMetadataMatching(dto.AllowMetadataMatching)
+            .WithAllowKoboSync(dto.AllowKoboSync)
             .WithEnableMetadata(dto.EnableMetadata)
             .WithMetadataProvider(dto.MetadataProvider)
             .Build();
@@ -389,6 +390,18 @@ public class LibraryController(
         return Ok();
     }
 
+    /// <summary>
+    /// Enqueues a whole-library CBZ/CBR → EPUB conversion into the shared Kobo cache (admin only).
+    /// Not bound by the in-request download time budget. Can grow disk use under cache-long/kobo.
+    /// </summary>
+    [HttpPost("convert-kobo")]
+    [Authorize(Policy = PolicyGroups.AdminPolicy)]
+    public ActionResult ConvertLibraryForKobo(int libraryId)
+    {
+        taskScheduler.ConvertLibraryForKobo(libraryId);
+        return Ok();
+    }
+
     [Authorize(Policy = PolicyGroups.AdminPolicy)]
     [HttpPost("refresh-metadata-multiple")]
     public ActionResult RefreshMetadataMultiple(BulkActionDto dto, bool forceColorscape = true)
@@ -425,6 +438,7 @@ public class LibraryController(
                 Type = sourceLibrary.Type,
                 AllowScrobbling = sourceLibrary.AllowScrobbling,
                 AllowMetadataMatching = sourceLibrary.AllowMetadataMatching,
+                AllowKoboSync = sourceLibrary.AllowKoboSync,
                 EnableMetadata = sourceLibrary.EnableMetadata,
                 RemovePrefixForSortName = sourceLibrary.RemovePrefixForSortName,
                 InheritWebLinksFromFirstChapter = sourceLibrary.InheritWebLinksFromFirstChapter,
@@ -748,6 +762,7 @@ public class LibraryController(
         library.ManageReadingLists = dto.ManageReadingLists;
         library.AllowScrobbling = dto.AllowScrobbling;
         library.AllowMetadataMatching = dto.AllowMetadataMatching;
+        library.AllowKoboSync = dto.AllowKoboSync;
         library.EnableMetadata = dto.EnableMetadata;
         library.RemovePrefixForSortName = dto.RemovePrefixForSortName;
         library.InheritWebLinksFromFirstChapter = dto.InheritWebLinksFromFirstChapter;

@@ -10,6 +10,7 @@ using Kavita.API.Services.SignalR;
 using Kavita.Models.Entities.Enums;
 using Kavita.Services.Helpers;
 using Kavita.Services.HostedServices;
+using Kavita.Services.Kobo;
 using Kavita.Services.Metadata;
 using Kavita.Services.Plus;
 using Kavita.Services.Plus.ScrobbleService;
@@ -59,6 +60,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IFontService, FontService>();
         services.AddScoped<IAnnotationService, AnnotationService>();
         services.AddScoped<IOpdsService, OpdsService>();
+        services.AddKoboServices();
         services.AddScoped<IOAuthService, OAuthService>();
 
         services.AddScoped<IUrlValidationService, UrlValidationService>();

@@ -720,6 +720,11 @@ namespace Kavita.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("AllowKoboSync")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("AllowMetadataMatching")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
@@ -3040,6 +3045,150 @@ namespace Kavita.Database.Migrations
                     b.ToTable("AppUserExternalSource");
                 });
 
+            modelBuilder.Entity("Kavita.Models.Entities.User.AppUserKoboArchivedChapter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDeviceDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModifiedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChapterId");
+
+                    b.HasIndex("AppUserId", "ChapterId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AppUserKoboArchivedChapter_AppUserId_ChapterId");
+
+                    b.ToTable("AppUserKoboArchivedChapter");
+                });
+
+            modelBuilder.Entity("Kavita.Models.Entities.User.AppUserKoboReadingLocation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LocationSource")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LocationType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LocationValue")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChapterId");
+
+                    b.HasIndex("AppUserId", "ChapterId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AppUserKoboReadingLocation_AppUserId_ChapterId");
+
+                    b.ToTable("AppUserKoboReadingLocation");
+                });
+
+            modelBuilder.Entity("Kavita.Models.Entities.User.AppUserKoboSyncedChapter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChapterId");
+
+                    b.HasIndex("AppUserId", "ChapterId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AppUserKoboSyncedChapter_AppUserId_ChapterId");
+
+                    b.ToTable("AppUserKoboSyncedChapter");
+                });
+
+            modelBuilder.Entity("Kavita.Models.Entities.User.AppUserKoboTagTombstone", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModifiedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TagId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TagId")
+                        .HasDatabaseName("IX_AppUserKoboTagTombstone_TagId");
+
+                    b.HasIndex("AppUserId", "TagId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AppUserKoboTagTombstone_AppUserId_TagId");
+
+                    b.ToTable("AppUserKoboTagTombstone");
+                });
+
+            modelBuilder.Entity("Kavita.Models.Entities.User.AppUserKoboTombstone", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("EntitlementId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntitlementId")
+                        .HasDatabaseName("IX_AppUserKoboTombstone_EntitlementId");
+
+                    b.HasIndex("AppUserId", "ChapterId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AppUserKoboTombstone_AppUserId_ChapterId");
+
+                    b.ToTable("AppUserKoboTombstone");
+                });
+
             modelBuilder.Entity("Kavita.Models.Entities.User.AppUserOnDeckRemoval", b =>
                 {
                     b.Property<int>("Id")
@@ -4643,6 +4792,85 @@ namespace Kavita.Database.Migrations
                 {
                     b.HasOne("Kavita.Models.Entities.User.AppUser", "AppUser")
                         .WithMany("ExternalSources")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
+            modelBuilder.Entity("Kavita.Models.Entities.User.AppUserKoboArchivedChapter", b =>
+                {
+                    b.HasOne("Kavita.Models.Entities.User.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Kavita.Models.Entities.Chapter", "Chapter")
+                        .WithMany()
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Chapter");
+                });
+
+            modelBuilder.Entity("Kavita.Models.Entities.User.AppUserKoboReadingLocation", b =>
+                {
+                    b.HasOne("Kavita.Models.Entities.User.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Kavita.Models.Entities.Chapter", "Chapter")
+                        .WithMany()
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Chapter");
+                });
+
+            modelBuilder.Entity("Kavita.Models.Entities.User.AppUserKoboSyncedChapter", b =>
+                {
+                    b.HasOne("Kavita.Models.Entities.User.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Kavita.Models.Entities.Chapter", "Chapter")
+                        .WithMany()
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Chapter");
+                });
+
+            modelBuilder.Entity("Kavita.Models.Entities.User.AppUserKoboTagTombstone", b =>
+                {
+                    b.HasOne("Kavita.Models.Entities.User.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
+            modelBuilder.Entity("Kavita.Models.Entities.User.AppUserKoboTombstone", b =>
+                {
+                    b.HasOne("Kavita.Models.Entities.User.AppUser", "AppUser")
+                        .WithMany()
                         .HasForeignKey("AppUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

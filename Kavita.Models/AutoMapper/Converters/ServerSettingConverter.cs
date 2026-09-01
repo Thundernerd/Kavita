@@ -48,6 +48,33 @@ public class ServerSettingConverter : ITypeConverter<IEnumerable<ServerSetting>,
                 case ServerSettingKey.EnableOpds:
                     destination.EnableOpds = bool.Parse(row.Value);
                     break;
+                case ServerSettingKey.EnableKoboSync:
+                    destination.EnableKoboSync = bool.Parse(row.Value);
+                    break;
+                case ServerSettingKey.KoboConvertTimeBudgetSeconds:
+                    destination.KoboConvertTimeBudgetSeconds = int.Parse(row.Value, CultureInfo.InvariantCulture);
+                    break;
+                case ServerSettingKey.KoboSyncPageSize:
+                    destination.KoboSyncPageSize = int.Parse(row.Value, CultureInfo.InvariantCulture);
+                    break;
+                case ServerSettingKey.EnableKepubConversion:
+                    destination.EnableKepubConversion = bool.Parse(row.Value);
+                    break;
+                case ServerSettingKey.KepubifyPath:
+                    destination.KepubifyPath = row.Value ?? string.Empty;
+                    break;
+                case ServerSettingKey.KoboEpubCacheMaxBytes:
+                    destination.KoboEpubCacheMaxBytes = ParseOptionalPositiveLong(row.Value);
+                    break;
+                case ServerSettingKey.KoboKepubCacheMaxBytes:
+                    destination.KoboKepubCacheMaxBytes = ParseOptionalPositiveLong(row.Value);
+                    break;
+                case ServerSettingKey.KoboConversionCacheDirectory:
+                    destination.KoboConversionCacheDirectory = row.Value ?? string.Empty;
+                    break;
+                case ServerSettingKey.ReplaceEpubWithKepub:
+                    destination.ReplaceEpubWithKepub = bool.Parse(row.Value);
+                    break;
                 case ServerSettingKey.BaseUrl:
                     destination.BaseUrl = row.Value;
                     break;
@@ -148,5 +175,15 @@ public class ServerSettingConverter : ITypeConverter<IEnumerable<ServerSetting>,
         }
 
         return destination;
+    }
+
+    /// <summary>
+    /// Empty or 0 means unlimited (null). Positive values are returned as-is.
+    /// </summary>
+    private static long? ParseOptionalPositiveLong(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var parsed = long.Parse(value, CultureInfo.InvariantCulture);
+        return parsed <= 0 ? null : parsed;
     }
 }

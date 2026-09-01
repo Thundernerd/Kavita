@@ -196,5 +196,56 @@ public enum ServerSettingKey
     /// When the CBL Sync task should run
     /// </summary>
     [Description("TaskCblSync")]
-    TaskCblSync = 43
+    TaskCblSync = 43,
+    /// <summary>
+    /// Is Kobo sync enabled for the server. Requires a configured HostName.
+    /// </summary>
+    [Description("EnableKoboSync")]
+    EnableKoboSync = 44,
+    /// <summary>
+    /// Wall-clock budget in seconds for in-request CBZ/CBR to EPUB conversion on Kobo download.
+    /// </summary>
+    [Description("KoboConvertTimeBudgetSeconds")]
+    KoboConvertTimeBudgetSeconds = 45,
+    /// <summary>
+    /// Max book/reading-state items returned per Kobo library/sync page.
+    /// </summary>
+    [Description("KoboSyncPageSize")]
+    KoboSyncPageSize = 46,
+    /// <summary>
+    /// When enabled, Kobo sync prefers cached KEPUB download URLs (requires a resolvable kepubify binary).
+    /// </summary>
+    [Description("EnableKepubConversion")]
+    EnableKepubConversion = 47,
+    /// <summary>
+    /// Optional override path to the kepubify binary. When empty, Kavita uses a bundled
+    /// <c>tools/kepubify</c> or <c>kepubify</c> on PATH.
+    /// </summary>
+    [Description("KepubifyPath")]
+    KepubifyPath = 48,
+    /// <summary>
+    /// Max bytes for the archive→EPUB Kobo conversion cache pool. Empty/0 = unlimited (no LRU).
+    /// </summary>
+    [Description("KoboEpubCacheMaxBytes")]
+    KoboEpubCacheMaxBytes = 49,
+    /// <summary>
+    /// Max bytes for the EPUB→KEPUB Kobo conversion cache pool. Empty/0 = unlimited (no LRU).
+    /// </summary>
+    [Description("KoboKepubCacheMaxBytes")]
+    KoboKepubCacheMaxBytes = 50,
+    /// <summary>
+    /// Durable cache root for Kobo archive→EPUB and EPUB→KEPUB conversion artifacts.
+    /// Empty resets to the default under long-term cache (<c>cache-long/kobo</c>).
+    /// </summary>
+    [Description("KoboConversionCacheDirectory")]
+    KoboConversionCacheDirectory = 51,
+    /// <summary>
+    /// When enabled (and KEPUB conversion is on): for native EPUB sources the generated
+    /// .kepub.epub replaces the original library .epub in place; for archive (CBZ/CBR)
+    /// sources the intermediate cached EPUB is dropped so only the KEPUB remains in the
+    /// conversion cache (CBZ/CBR library files are never modified). Destructive to
+    /// original library EPUBs; default off.
+    /// </summary>
+    [Description("ReplaceEpubWithKepub")]
+    ReplaceEpubWithKepub = 52
 }

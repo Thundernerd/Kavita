@@ -13,6 +13,8 @@ import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {DefaultValuePipe} from "../../_pipes/default-value.pipe";
 import {EnterBlurDirective} from "../../_directives/enter-blur.directive";
 import {LogLevelPipe} from "../../_pipes/log-level.pipe";
+import {DirectoryPickerComponent, DirectoryPickerResult} from '../_modals/directory-picker/directory-picker.component';
+import {ModalService} from "../../_services/modal.service";
 import {ServerService} from "../../_services/server.service";
 import {ValidationErrorsComponent} from "../../shared/_components/validation-errors/validation-errors.component";
 import {FormFieldDirective} from "../../_directives/form-field.directive";
@@ -35,6 +37,7 @@ export class ManageSettingsComponent implements OnInit {
   private readonly serverService = inject(ServerService);
   private readonly confirmService = inject(ConfirmService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly modalService = inject(ModalService);
   protected readonly WikiLink = WikiLink;
 
   serverSettings!: ServerSettings;
@@ -68,6 +71,15 @@ export class ManageSettingsComponent implements OnInit {
       this.settingsForm.addControl('loggingLevel', new FormControl(this.serverSettings.loggingLevel, [Validators.required]));
       this.settingsForm.addControl('allowStatCollection', new FormControl(this.serverSettings.allowStatCollection, [Validators.required]));
       this.settingsForm.addControl('enableOpds', new FormControl(this.serverSettings.enableOpds, [Validators.required]));
+      this.settingsForm.addControl('enableKoboSync', new FormControl(this.serverSettings.enableKoboSync, [Validators.required]));
+      this.settingsForm.addControl('koboConvertTimeBudgetSeconds', new FormControl(this.serverSettings.koboConvertTimeBudgetSeconds, [Validators.required, Validators.min(1)]));
+      this.settingsForm.addControl('koboSyncPageSize', new FormControl(this.serverSettings.koboSyncPageSize, [Validators.required, Validators.min(1), Validators.max(1000)]));
+      this.settingsForm.addControl('enableKepubConversion', new FormControl(this.serverSettings.enableKepubConversion, [Validators.required]));
+      this.settingsForm.addControl('replaceEpubWithKepub', new FormControl(this.serverSettings.replaceEpubWithKepub, [Validators.required]));
+      this.settingsForm.addControl('kepubifyPath', new FormControl(this.serverSettings.kepubifyPath || ''));
+      this.settingsForm.addControl('koboEpubCacheMaxBytes', new FormControl(this.serverSettings.koboEpubCacheMaxBytes ?? null, [Validators.min(1)]));
+      this.settingsForm.addControl('koboKepubCacheMaxBytes', new FormControl(this.serverSettings.koboKepubCacheMaxBytes ?? null, [Validators.min(1)]));
+      this.settingsForm.addControl('koboConversionCacheDirectory', new FormControl(this.serverSettings.koboConversionCacheDirectory || '', [Validators.required]));
       this.settingsForm.addControl('baseUrl', new FormControl(this.serverSettings.baseUrl, [Validators.pattern(/^(\/[\w-]+)*\/$/)]));
       this.settingsForm.addControl('totalBackups', new FormControl(this.serverSettings.totalBackups, [Validators.required, Validators.min(1), Validators.max(30)]));
       this.settingsForm.addControl('cacheSize', new FormControl(this.serverSettings.cacheSize, [Validators.required, Validators.min(50)]));
@@ -79,6 +91,19 @@ export class ManageSettingsComponent implements OnInit {
       this.settingsForm.addControl('onDeckUpdateDays', new FormControl(this.serverSettings.onDeckUpdateDays, [Validators.required]));
 
 
+      this.updateKoboSyncControlState();
+      this.updateKepubConversionValidators();
+      this.updateReplaceEpubWithKepubControlState();
+      this.settingsForm.get('hostName')?.valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => this.updateKoboSyncControlState());
+      this.settingsForm.get('enableKepubConversion')?.valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
+        this.updateKepubConversionValidators();
+        this.updateReplaceEpubWithKepubControlState();
+      });
+
       // Automatically save settings as we edit them
       this.settingsForm.valueChanges.pipe(
         distinctUntilChanged(),
@@ -89,6 +114,8 @@ export class ManageSettingsComponent implements OnInit {
           const data = this.packData();
           return this.settingsService.updateServerSettings(data).pipe(catchError(err => {
             console.error(err);
+            this.toastr.error(err?.error || translate('errors.generic'));
+            this.resetForm();
             return of(null);
           }));
         }),
@@ -116,6 +143,48 @@ export class ManageSettingsComponent implements OnInit {
     this.cdRef.markForCheck();
   }
 
+  private updateKoboSyncControlState() {
+    const hostName = (this.settingsForm.get('hostName')?.value || '').trim();
+    const enableKobo = this.settingsForm.get('enableKoboSync');
+    if (!enableKobo) return;
+
+    if (!hostName) {
+      if (enableKobo.value) {
+        enableKobo.setValue(false, {emitEvent: false});
+      }
+      enableKobo.disable({emitEvent: false});
+    } else {
+      enableKobo.enable({emitEvent: false});
+    }
+    this.cdRef.markForCheck();
+  }
+
+  private updateKepubConversionValidators() {
+    const kepubifyPath = this.settingsForm.get('kepubifyPath');
+    if (!kepubifyPath) return;
+
+    // Path is an optional override; server resolves bundled/PATH kepubify when blank.
+    kepubifyPath.clearValidators();
+    kepubifyPath.updateValueAndValidity({emitEvent: false});
+    this.cdRef.markForCheck();
+  }
+
+  private updateReplaceEpubWithKepubControlState() {
+    const replace = this.settingsForm.get('replaceEpubWithKepub');
+    const kepubEnabled = !!this.settingsForm.get('enableKepubConversion')?.value;
+    if (!replace) return;
+
+    if (!kepubEnabled) {
+      if (replace.value) {
+        replace.setValue(false, {emitEvent: false});
+      }
+      replace.disable({emitEvent: false});
+    } else {
+      replace.enable({emitEvent: false});
+    }
+    this.cdRef.markForCheck();
+  }
+
   resetForm() {
     this.settingsForm.get('cacheDirectory')?.setValue(this.serverSettings.cacheDirectory, {onlySelf: true, emitEvent: false});
     this.settingsForm.get('scanTask')?.setValue(this.serverSettings.taskScan, {onlySelf: true, emitEvent: false});
@@ -126,7 +195,19 @@ export class ManageSettingsComponent implements OnInit {
     this.settingsForm.get('loggingLevel')?.setValue(this.serverSettings.loggingLevel, {onlySelf: true, emitEvent: false});
     this.settingsForm.get('allowStatCollection')?.setValue(this.serverSettings.allowStatCollection, {onlySelf: true, emitEvent: false});
     this.settingsForm.get('enableOpds')?.setValue(this.serverSettings.enableOpds, {onlySelf: true, emitEvent: false});
+    this.settingsForm.get('enableKoboSync')?.setValue(this.serverSettings.enableKoboSync, {onlySelf: true, emitEvent: false});
+    this.settingsForm.get('koboConvertTimeBudgetSeconds')?.setValue(this.serverSettings.koboConvertTimeBudgetSeconds, {onlySelf: true, emitEvent: false});
+    this.settingsForm.get('koboSyncPageSize')?.setValue(this.serverSettings.koboSyncPageSize, {onlySelf: true, emitEvent: false});
+    this.settingsForm.get('enableKepubConversion')?.setValue(this.serverSettings.enableKepubConversion, {onlySelf: true, emitEvent: false});
+    this.settingsForm.get('replaceEpubWithKepub')?.setValue(this.serverSettings.replaceEpubWithKepub, {onlySelf: true, emitEvent: false});
+    this.settingsForm.get('kepubifyPath')?.setValue(this.serverSettings.kepubifyPath || '', {onlySelf: true, emitEvent: false});
+    this.settingsForm.get('koboEpubCacheMaxBytes')?.setValue(this.serverSettings.koboEpubCacheMaxBytes ?? null, {onlySelf: true, emitEvent: false});
+    this.settingsForm.get('koboKepubCacheMaxBytes')?.setValue(this.serverSettings.koboKepubCacheMaxBytes ?? null, {onlySelf: true, emitEvent: false});
+    this.settingsForm.get('koboConversionCacheDirectory')?.setValue(this.serverSettings.koboConversionCacheDirectory || '', {onlySelf: true, emitEvent: false});
     this.settingsForm.get('baseUrl')?.setValue(this.serverSettings.baseUrl, {onlySelf: true, emitEvent: false});
+    this.updateKoboSyncControlState();
+    this.updateKepubConversionValidators();
+    this.updateReplaceEpubWithKepubControlState();
     this.settingsForm.get('emailServiceUrl')?.setValue(this.serverSettings.emailServiceUrl, {onlySelf: true, emitEvent: false});
     this.settingsForm.get('totalBackups')?.setValue(this.serverSettings.totalBackups, {onlySelf: true, emitEvent: false});
     this.settingsForm.get('totalLogs')?.setValue(this.serverSettings.totalLogs, {onlySelf: true, emitEvent: false});
@@ -141,10 +222,23 @@ export class ManageSettingsComponent implements OnInit {
   }
 
   packData() {
-    return {
+    const data = {
       ...this.serverSettings,
-      ...this.settingsForm.value,
+      ...this.settingsForm.getRawValue(),
     };
+    if (!(data.hostName || '').trim()) {
+      data.enableKoboSync = false;
+    }
+    data.koboEpubCacheMaxBytes = this.normalizeOptionalByteCap(data.koboEpubCacheMaxBytes);
+    data.koboKepubCacheMaxBytes = this.normalizeOptionalByteCap(data.koboKepubCacheMaxBytes);
+    return data;
+  }
+
+  private normalizeOptionalByteCap(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    const n = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    return Math.trunc(n);
   }
 
   async resetToDefaults() {
@@ -192,6 +286,18 @@ export class ManageSettingsComponent implements OnInit {
 
       return { 'emptyOrPattern': { 'requiredPattern': pattern.toString(), 'actualValue': control.value } };
     }
+  }
+
+  openDirectoryChooser(existingDirectory: string, formControl: string) {
+    const modalRef = this.modalService.open(DirectoryPickerComponent);
+    modalRef.setInput('startingFolder', existingDirectory || '');
+    modalRef.setInput('helpUrl', '');
+    modalRef.closed.subscribe((closeResult: DirectoryPickerResult) => {
+      if (closeResult.success && closeResult.folderPath !== '') {
+        this.settingsForm.get(formControl)?.setValue(closeResult.folderPath);
+        this.cdRef.markForCheck();
+      }
+    });
   }
 
 }

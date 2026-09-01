@@ -15,6 +15,19 @@ export interface ServerSettings {
   ipAddresses: string;
   allowStatCollection: boolean;
   enableOpds: boolean;
+  enableKoboSync: boolean;
+  koboConvertTimeBudgetSeconds: number;
+  koboSyncPageSize: number;
+  enableKepubConversion: boolean;
+  kepubifyPath: string;
+  /** When enabled, replaces the original library EPUB with the generated KEPUB after conversion */
+  replaceEpubWithKepub: boolean;
+  /** Max bytes for archive→EPUB cache; null/0/omitted = unlimited */
+  koboEpubCacheMaxBytes?: number | null;
+  /** Max bytes for EPUB→KEPUB cache; null/0/omitted = unlimited */
+  koboKepubCacheMaxBytes?: number | null;
+  /** Durable root for converted EPUB/KEPUB artifacts */
+  koboConversionCacheDirectory: string;
   baseUrl: string;
   bookmarksDirectory: string;
   emailServiceUrl: string;

@@ -1,4 +1,5 @@
 ﻿using System;
+using Kavita.Models.Constants;
 using Kavita.Models.Entities.Enums;
 using System.ComponentModel.DataAnnotations;
 
@@ -33,6 +34,49 @@ public sealed record ServerSettingDto
     /// Enables OPDS connections to be made to the server.
     /// </summary>
     public bool EnableOpds { get; set; }
+    /// <summary>
+    /// Enables Kobo sync for the server. Requires a non-empty HostName.
+    /// </summary>
+    public bool EnableKoboSync { get; set; }
+    /// <summary>
+    /// Wall-clock budget in seconds for in-request CBZ/CBR to EPUB conversion on Kobo download.
+    /// </summary>
+    public int KoboConvertTimeBudgetSeconds { get; set; } = KoboSettingsDefaults.ConvertTimeBudgetSeconds;
+    /// <summary>
+    /// Max book/reading-state items returned per Kobo library/sync page. Default 100; bounds 1–1000.
+    /// </summary>
+    public int KoboSyncPageSize { get; set; } = KoboSettingsDefaults.SyncPageSize;
+    /// <summary>
+    /// When enabled, Kobo sync prefers cached KEPUB download URLs. Off by default (EPUB-only advertising).
+    /// </summary>
+    public bool EnableKepubConversion { get; set; }
+    /// <summary>
+    /// Optional override path to the kepubify binary. When empty, Kavita uses bundled
+    /// <c>tools/kepubify</c> or <c>kepubify</c> on PATH. A resolvable binary is required when
+    /// <see cref="EnableKepubConversion"/> is enabled.
+    /// </summary>
+    public string KepubifyPath { get; set; } = string.Empty;
+    /// <summary>
+    /// Max bytes for the archive→EPUB Kobo conversion cache. Null/0 = unlimited (no automatic LRU).
+    /// </summary>
+    public long? KoboEpubCacheMaxBytes { get; set; }
+    /// <summary>
+    /// Max bytes for the EPUB→KEPUB Kobo conversion cache. Null/0 = unlimited (no automatic LRU).
+    /// </summary>
+    public long? KoboKepubCacheMaxBytes { get; set; }
+    /// <summary>
+    /// Durable root for Kobo EPUB/KEPUB conversion cache artifacts (<c>{chapterId}/{fingerprint}.epub</c>).
+    /// </summary>
+    /// <remarks>If null or empty string, defaults to <c>{LongTermCacheDirectory}/kobo</c>.</remarks>
+    public string KoboConversionCacheDirectory { get; set; } = default!;
+    /// <summary>
+    /// When enabled (and <see cref="EnableKepubConversion"/> is on): for native EPUB sources
+    /// the generated .kepub.epub replaces the original library .epub in place; for archive
+    /// (CBZ/CBR) sources the intermediate cached EPUB is dropped so only the KEPUB remains
+    /// in the conversion cache (CBZ/CBR library files are never modified). Destructive to
+    /// original library EPUBs; default off. No-op when KEPUB conversion is disabled.
+    /// </summary>
+    public bool ReplaceEpubWithKepub { get; set; }
     /// <summary>
     /// Base Url for the kavita. Requires restart to take effect.
     /// </summary>

@@ -21,6 +21,7 @@ using Kavita.Models.Constants;
 using Kavita.Models.DTOs;
 using Kavita.Models.DTOs.Account;
 using Kavita.Models.DTOs.Email;
+using Kavita.Models.DTOs.Kobo;
 using Kavita.Models.DTOs.Settings;
 using Kavita.Models.DTOs.SignalR;
 using Kavita.Models.Entities;
@@ -54,7 +55,8 @@ public class AccountController(UserManager<AppUser> userManager,
     IEmailService emailService, IEventHub eventHub,
     ILocalizationService localizationService,
     IAuthenticationSchemeProvider authenticationSchemeProvider,
-    IAuthKeyService authKeyService, IOidcService oidcService) : BaseApiController
+    IAuthKeyService authKeyService, IOidcService oidcService,
+    IKoboService koboService) : BaseApiController
 {
     // Hardcoded to avoid localization multiple enumeration: https://github.com/Kareadita/Kavita/issues/2829
     private const string BadCredentialsMessage = "Your credentials are not correct";
@@ -1229,6 +1231,86 @@ public class AccountController(UserManager<AppUser> userManager,
             return NotFound();
 
         return Ok(origin + "/" + baseUrl + "api/opds/" + opdsAuthKey);
+    }
+
+    /// <summary>
+    /// Create or view the Kobo sync URL for this user (lazy-mints a named <c>kobo</c> AuthKey).
+    /// </summary>
+    [HttpGet("kobo-sync-url")]
+    public Task<ActionResult<string>> GetKoboSyncUrl() =>
+        ExecuteKoboAccountAction(ct => koboService.GetOrCreateSyncUrlAsync(UserId, ct));
+
+    /// <summary>
+    /// Rotate the Kobo AuthKey so previous sync URLs stop working.
+    /// </summary>
+    [HttpPost("kobo-sync-url/rotate")]
+    [DisallowRole(PolicyConstants.ReadOnlyRole)]
+    public Task<ActionResult<string>> RotateKoboSyncUrl() =>
+        ExecuteKoboAccountAction(ct => koboService.RotateSyncAuthKeyAsync(UserId, ct));
+
+    /// <summary>
+    /// Revoke the Kobo AuthKey until Create/View mints a new one.
+    /// </summary>
+    [HttpDelete("kobo-sync-url")]
+    [DisallowRole(PolicyConstants.ReadOnlyRole)]
+    public Task<ActionResult> RevokeKoboSyncUrl() =>
+        ExecuteKoboAccountAction(ct => koboService.RevokeSyncAuthKeyAsync(UserId, ct));
+
+    /// <summary>
+    /// Force a full Kobo sync by clearing this user's synced-set cursor only.
+    /// Does not rotate the AuthKey or clear device-deleted archives.
+    /// </summary>
+    [HttpPost("kobo-sync-url/force-full-sync")]
+    [DisallowRole(PolicyConstants.ReadOnlyRole)]
+    public Task<ActionResult> ForceFullKoboSync() =>
+        ExecuteKoboAccountAction(ct => koboService.ForceFullSyncAsync(UserId, ct));
+
+    /// <summary>
+    /// Lists still-eligible device-deleted Kobo books that can be restored.
+    /// </summary>
+    [HttpGet("kobo-sync-url/removed")]
+    public Task<ActionResult<IReadOnlyList<KoboRemovedBookDto>>> GetRemovedKoboBooks() =>
+        ExecuteKoboAccountAction(ct => koboService.GetRemovedBooksAsync(UserId, ct));
+
+    /// <summary>
+    /// Restore books removed on the Kobo device: clears device-deleted archives for still-eligible
+    /// chapters and drops them from the synced-set so the next sync re-entitles them.
+    /// Pass chapter ids to restore a selection; omit or pass an empty list to restore all.
+    /// </summary>
+    [HttpPost("kobo-sync-url/restore-removed")]
+    [DisallowRole(PolicyConstants.ReadOnlyRole)]
+    public Task<ActionResult> RestoreRemovedKoboBooks(RestoreKoboRemovedBooksDto? dto) =>
+        ExecuteKoboAccountAction(ct => koboService.RestoreRemovedBooksAsync(UserId, dto?.ChapterIds, ct));
+
+    /// <summary>
+    /// Runs a Kobo sync-url account action, translating <see cref="KavitaException"/> into a 400.
+    /// </summary>
+    private async Task<ActionResult<T>> ExecuteKoboAccountAction<T>(Func<CancellationToken, Task<T>> action)
+    {
+        var ct = HttpContext.RequestAborted;
+        try
+        {
+            return Ok(await action(ct));
+        }
+        catch (KavitaException ex)
+        {
+            return BadRequest(await localizationService.TranslateAsync(UserId, ex.Message));
+        }
+    }
+
+    /// <inheritdoc cref="ExecuteKoboAccountAction{T}"/>
+    private async Task<ActionResult> ExecuteKoboAccountAction(Func<CancellationToken, Task> action)
+    {
+        var ct = HttpContext.RequestAborted;
+        try
+        {
+            await action(ct);
+            return Ok();
+        }
+        catch (KavitaException ex)
+        {
+            return BadRequest(await localizationService.TranslateAsync(UserId, ex.Message));
+        }
     }
 
 

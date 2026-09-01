@@ -167,6 +167,23 @@ public static class Seed
                 }, // Not used from DB, but DB is sync with appSettings.json
                 new() {Key = ServerSettingKey.AllowStatCollection, Value = "true"},
                 new() {Key = ServerSettingKey.EnableOpds, Value = "true"},
+                new() {Key = ServerSettingKey.EnableKoboSync, Value = "false"},
+                new() {Key = ServerSettingKey.KoboConvertTimeBudgetSeconds, Value = KoboSettingsDefaults.ConvertTimeBudgetSeconds.ToString()},
+                new() {Key = ServerSettingKey.KoboSyncPageSize, Value = KoboSettingsDefaults.SyncPageSize.ToString()},
+                new() {Key = ServerSettingKey.EnableKepubConversion, Value = "false"},
+                new() {Key = ServerSettingKey.KepubifyPath, Value = string.Empty},
+                new() {Key = ServerSettingKey.KoboEpubCacheMaxBytes, Value = string.Empty},
+                new() {Key = ServerSettingKey.KoboKepubCacheMaxBytes, Value = string.Empty},
+                new()
+                {
+                    Key = ServerSettingKey.KoboConversionCacheDirectory,
+                    Value = Path.Combine(
+                        string.IsNullOrWhiteSpace(directoryService.LongTermCacheDirectory)
+                            ? Path.Combine("config", "cache-long")
+                            : directoryService.LongTermCacheDirectory,
+                        KoboSettingsDefaults.CacheFolderName)
+                },
+                new() {Key = ServerSettingKey.ReplaceEpubWithKepub, Value = "false"},
                 new() {Key = ServerSettingKey.BaseUrl, Value = "/"},
                 new() {Key = ServerSettingKey.InstallId, Value = HashUtil.AnonymousToken()},
                 new() {Key = ServerSettingKey.InstallVersion, Value = BuildInfo.Version.ToString()},

@@ -18,6 +18,7 @@ import {LocalizationService} from "./localization.service";
 import {Annotation} from "../book-reader/_models/annotations/annotation";
 import {AuthKey, ImageOnlyName, OpdsName} from "../_models/user/auth-key";
 import {Action} from "../_models/actionables/action";
+import {KoboRemovedBook} from "../_models/kobo/kobo-removed-book";
 
 export enum Role {
   Admin = 'Admin',
@@ -434,6 +435,31 @@ export class AccountService {
 
   opdsUrlRsc(keyName: () => string) {
     return httpResource.text<string>(() =>this.baseUrl + 'account/opds-url?authKeyName=' + keyName());
+  }
+
+  getKoboSyncUrl() {
+    return this.httpClient.get<string>(this.baseUrl + 'account/kobo-sync-url', TextResonse);
+  }
+
+  rotateKoboSyncUrl() {
+    return this.httpClient.post<string>(this.baseUrl + 'account/kobo-sync-url/rotate', {}, TextResonse);
+  }
+
+  revokeKoboSyncUrl() {
+    return this.httpClient.delete(this.baseUrl + 'account/kobo-sync-url');
+  }
+
+  forceFullKoboSync() {
+    return this.httpClient.post(this.baseUrl + 'account/kobo-sync-url/force-full-sync', {});
+  }
+
+  getRemovedKoboBooks() {
+    return this.httpClient.get<KoboRemovedBook[]>(this.baseUrl + 'account/kobo-sync-url/removed');
+  }
+
+  restoreRemovedKoboBooks(chapterIds?: number[]) {
+    const body = chapterIds && chapterIds.length > 0 ? {chapterIds} : {};
+    return this.httpClient.post(this.baseUrl + 'account/kobo-sync-url/restore-removed', body);
   }
 
   getAuthKeys() {
