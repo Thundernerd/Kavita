@@ -146,4 +146,6 @@ public interface ISeriesRepository
     /// <param name="ct"></param>
     /// <returns></returns>
     Task<int?> GetChapterCountIfAllSpecials(int seriesId, CancellationToken ct = default);
+    Task<int> UpdateAllowKoboSyncAsync(IList<int> seriesIds, bool allowKoboSync, CancellationToken ct = default);
+    Task<int> UpdateAllowKoboSyncForLibraryAsync(int libraryId, bool allowKoboSync, CancellationToken ct = default);
 }

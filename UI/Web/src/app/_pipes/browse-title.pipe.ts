@@ -65,6 +65,7 @@ export class BrowseTitlePipe implements PipeTransform {
       case SeriesFilterField.Path:
       case SeriesFilterField.FilePath:
       case SeriesFilterField.WantToRead:
+      case SeriesFilterField.AllowKoboSync:
       case SeriesFilterField.ReadingDate:
       case SeriesFilterField.AverageRating:
       case SeriesFilterField.ReadLast:

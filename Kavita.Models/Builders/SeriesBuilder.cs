@@ -33,7 +33,8 @@ public class SeriesBuilder : API.Helpers.Builders.IEntityBuilder<Series>
                 .WithPublicationStatus(PublicationStatus.OnGoing)
                 .Build(),
             Volumes = new List<Volume>(),
-            ExternalSeriesMetadata = new ExternalSeriesMetadata()
+            ExternalSeriesMetadata = new ExternalSeriesMetadata(),
+            AllowKoboSync = true
         };
     }
 
@@ -135,6 +136,12 @@ public class SeriesBuilder : API.Helpers.Builders.IEntityBuilder<Series>
     public SeriesBuilder WithMangaBakaId(int id)
     {
         _series.MangaBakaId = id;
+        return this;
+    }
+
+    public SeriesBuilder WithAllowKoboSync(bool allowKoboSync)
+    {
+        _series.AllowKoboSync = allowKoboSync;
         return this;
     }
 }

@@ -76,6 +76,8 @@ public sealed record SeriesDto : IHasReadTimeEstimate, IHasCoverImage, IHasMetad
     /// <inheritdoc cref="API.Entities.Series.LibraryId"/>
     public int LibraryId { get; set; }
     public string LibraryName { get; set; } = default!;
+    /// <inheritdoc cref="Kavita.Models.Entities.Series.AllowKoboSync"/>
+    public bool AllowKoboSync { get; set; } = true;
     /// <inheritdoc cref="IHasReadTimeEstimate.MinHoursToRead"/>
     public int MinHoursToRead { get; set; }
     /// <inheritdoc cref="IHasReadTimeEstimate.MaxHoursToRead"/>

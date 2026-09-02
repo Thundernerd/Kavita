@@ -38,6 +38,7 @@ export enum SeriesFilterField
     ReadLast = 32,
     FileSize = 33,
     CollapseSeriesRelationships = 34,
+    AllowKoboSync = 35,
 }
 
 

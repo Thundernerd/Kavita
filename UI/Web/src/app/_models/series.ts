@@ -78,6 +78,7 @@ export interface Series extends IHasCover, IHasReadingTime, IHasProgress, IHasMe
   coverImage?: string;
   primaryColor: string;
   secondaryColor: string;
+  allowKoboSync: boolean;
   /**
    * Kavita+ only. Will not perform any matching from Kavita+
    */

@@ -16,6 +16,8 @@ public sealed record UpdateSeriesDto : IUpdateExternalMetadataIds
     public bool NameLocked { get; set; }
     public bool SortNameLocked { get; set; }
     public bool LocalizedNameLocked { get; set; }
+    /// <inheritdoc cref="Kavita.Models.Entities.Series.AllowKoboSync"/>
+    public bool AllowKoboSync { get; set; } = true;
 
     /// <summary>
     /// Overrides the parent Library's default Metadata Provider for this Series only.

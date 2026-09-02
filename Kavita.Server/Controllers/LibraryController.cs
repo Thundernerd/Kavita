@@ -402,6 +402,20 @@ public class LibraryController(
         return Ok();
     }
 
+    /// <summary>
+    /// Enable or disable Kobo sync for every series in the library. Does not change <see cref="Library.AllowKoboSync"/>.
+    /// </summary>
+    [HttpPost("series-kobo-sync")]
+    [Authorize(Policy = PolicyGroups.AdminPolicy)]
+    public async Task<ActionResult<int>> UpdateSeriesKoboSyncForLibrary(int libraryId, bool allowKoboSync)
+    {
+        var ct = HttpContext.RequestAborted;
+        var library = await unitOfWork.LibraryRepository.GetLibraryForIdAsync(libraryId, ct: ct);
+        if (library == null) return BadRequest(await localizationService.TranslateAsync(UserId, "library-doesnt-exist"));
+
+        return Ok(await unitOfWork.SeriesRepository.UpdateAllowKoboSyncForLibraryAsync(libraryId, allowKoboSync, ct));
+    }
+
     [Authorize(Policy = PolicyGroups.AdminPolicy)]
     [HttpPost("refresh-metadata-multiple")]
     public ActionResult RefreshMetadataMultiple(BulkActionDto dto, bool forceColorscape = true)

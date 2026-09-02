@@ -134,4 +134,12 @@ export enum Action {
    * Warm shared Kobo CBZ/CBR → EPUB conversion cache for a series, volume, or chapter
    */
   ConvertForKobo = 42,
+  /**
+   * Allow this series to sync to Kobo
+   */
+  AllowKoboSync = 43,
+  /**
+   * Exclude this series from Kobo sync
+   */
+  ExcludeFromKoboSync = 44,
 }

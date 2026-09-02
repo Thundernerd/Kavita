@@ -378,6 +378,113 @@ public class KoboConversionServiceTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Fact]
+    public async Task ConvertLibraryForKobo_SkipsSeriesWithAllowKoboSyncFalse()
+    {
+        KoboConversionService.ResetInFlightForTests();
+        var (unitOfWork, context, _) = await CreateDatabase();
+        var library = new LibraryBuilder("Skip Excluded Lib").WithAllowKoboSync(true).Build();
+        context.Library.Add(library);
+        await context.SaveChangesAsync();
+
+        var includedChapter = new ChapterBuilder("1")
+            .WithPages(10)
+            .WithFile(new MangaFileBuilder(_cbzPath, MangaFormat.Archive, 10).WithExtension(".cbz").Build())
+            .Build();
+        var excludedChapter = new ChapterBuilder("1")
+            .WithPages(10)
+            .WithFile(new MangaFileBuilder(_cbzPath, MangaFormat.Archive, 10).WithExtension(".cbz").Build())
+            .Build();
+        var included = new SeriesBuilder("Included Archive")
+            .WithFormat(MangaFormat.Archive)
+            .WithVolume(new VolumeBuilder(Parser.LooseLeafVolume).WithChapter(includedChapter).Build())
+            .Build();
+        var excluded = new SeriesBuilder("Excluded Archive")
+            .WithFormat(MangaFormat.Archive)
+            .WithAllowKoboSync(false)
+            .WithVolume(new VolumeBuilder(Parser.LooseLeafVolume).WithChapter(excludedChapter).Build())
+            .Build();
+        included.Library = library;
+        excluded.Library = library;
+        context.Series.AddRange(included, excluded);
+        await context.SaveChangesAsync();
+
+        var cacheDir = Path.Join(Path.GetTempPath(), "kavita-kobo-cache-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(cacheDir);
+
+        var convertCalls = 0;
+        var converter = Substitute.For<IKoboArchiveEpubConverter>();
+        converter.ConvertAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ci =>
+            {
+                convertCalls++;
+                var output = ci.ArgAt<string>(1);
+                KoboConvertEpubTestFactory.WriteMinimalConvertEpub(output, 10);
+                return Task.CompletedTask;
+            });
+
+        var directoryService = Substitute.For<IDirectoryService>();
+        directoryService.LongTermCacheDirectory.Returns(cacheDir);
+        await SetConversionCacheDirectory(unitOfWork, Path.Combine(cacheDir, KoboConversionService.CacheFolderName));
+        directoryService.ExistOrCreate(Arg.Any<string>()).Returns(ci =>
+        {
+            Directory.CreateDirectory(ci.ArgAt<string>(0));
+            return true;
+        });
+
+        var service = CreateService(unitOfWork, directoryService, converter);
+        await service.ConvertLibraryForKoboAsync(library.Id);
+
+        Assert.Equal(1, convertCalls);
+    }
+
+    [Fact]
+    public async Task ConvertSeriesForKobo_NoOpsWhenSeriesOrLibraryDisallows()
+    {
+        KoboConversionService.ResetInFlightForTests();
+        var (unitOfWork, context, _) = await CreateDatabase();
+        var library = new LibraryBuilder("Disallow Series Lib").WithAllowKoboSync(true).Build();
+        context.Library.Add(library);
+        await context.SaveChangesAsync();
+
+        var chapter = new ChapterBuilder("1")
+            .WithPages(10)
+            .WithFile(new MangaFileBuilder(_cbzPath, MangaFormat.Archive, 10).WithExtension(".cbz").Build())
+            .Build();
+        var series = new SeriesBuilder("Excluded Convert")
+            .WithFormat(MangaFormat.Archive)
+            .WithAllowKoboSync(false)
+            .WithVolume(new VolumeBuilder(Parser.LooseLeafVolume).WithChapter(chapter).Build())
+            .Build();
+        series.Library = library;
+        context.Series.Add(series);
+        await context.SaveChangesAsync();
+
+        var convertCalls = 0;
+        var converter = Substitute.For<IKoboArchiveEpubConverter>();
+        converter.ConvertAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ci =>
+            {
+                convertCalls++;
+                return Task.CompletedTask;
+            });
+
+        var directoryService = Substitute.For<IDirectoryService>();
+        directoryService.LongTermCacheDirectory.Returns(Path.GetTempPath());
+        var service = CreateService(unitOfWork, directoryService, converter);
+
+        await service.ConvertSeriesForKoboAsync(series.Id);
+        Assert.Equal(0, convertCalls);
+
+        series.AllowKoboSync = true;
+        library.AllowKoboSync = false;
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        await service.ConvertSeriesForKoboAsync(series.Id);
+        Assert.Equal(0, convertCalls);
+    }
+
+    [Fact]
     public async Task ClearConversionCache_EmptiesSharedCache()
     {
         KoboConversionService.ResetInFlightForTests();

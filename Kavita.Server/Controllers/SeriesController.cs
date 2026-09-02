@@ -254,6 +254,7 @@ public class SeriesController(
         series.NameLocked = updateSeries.NameLocked;
         series.SortNameLocked = updateSeries.SortNameLocked;
         series.LocalizedNameLocked = updateSeries.LocalizedNameLocked;
+        series.AllowKoboSync = updateSeries.AllowKoboSync;
 
         ExternalMetadataIdHelper.SetExternalMetadataIds(series, updateSeries);
 
@@ -449,6 +450,17 @@ public class SeriesController(
     {
         taskScheduler.ConvertSeriesForKobo(seriesId);
         return Ok();
+    }
+
+    /// <summary>
+    /// Enable or disable Kobo sync for the given series. Does not change the parent library flag.
+    /// </summary>
+    [HttpPost("kobo-sync")]
+    [Authorize(Policy = PolicyGroups.AdminPolicy)]
+    public async Task<ActionResult<int>> UpdateSeriesKoboSync(UpdateSeriesKoboSyncDto dto)
+    {
+        var ct = HttpContext.RequestAborted;
+        return Ok(await unitOfWork.SeriesRepository.UpdateAllowKoboSyncAsync(dto.SeriesIds, dto.AllowKoboSync, ct));
     }
 
     /// <summary>

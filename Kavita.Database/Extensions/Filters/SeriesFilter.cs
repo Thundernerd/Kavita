@@ -694,5 +694,18 @@ public static class SeriesFilter
                 _ => throw new ArgumentOutOfRangeException(nameof(comparison), comparison, "Filter Comparison is not supported"),
             };
         }
+
+        public IQueryable<Series> HasAllowKoboSync(bool condition, FilterComparison comparison, bool allowKoboSync)
+        {
+            if (!condition) return queryable;
+            ComparisonProfile.Validate(comparison, ComparisonProfile.Boolean, "Series.AllowKoboSync");
+
+            return comparison switch
+            {
+                FilterComparison.Equal => queryable.Where(s => s.AllowKoboSync == allowKoboSync),
+                FilterComparison.NotEqual => queryable.Where(s => s.AllowKoboSync != allowKoboSync),
+                _ => throw new ArgumentOutOfRangeException(nameof(comparison), comparison, "Filter Comparison is not supported"),
+            };
+        }
     }
 }

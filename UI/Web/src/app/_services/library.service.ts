@@ -134,6 +134,10 @@ export class LibraryService {
     return this.httpClient.post(this.baseUrl + `library/convert-kobo?libraryId=${libraryId}`, {});
   }
 
+  updateSeriesKoboSync(libraryId: number, allowKoboSync: boolean) {
+    return this.httpClient.post<number>(this.baseUrl + `library/series-kobo-sync?libraryId=${libraryId}&allowKoboSync=${allowKoboSync}`, {});
+  }
+
   refreshMetadataMultipleLibraries(libraryIds: Array<number>, force = false, forceColorscape = false) {
     return this.httpClient.post(this.baseUrl + 'library/refresh-metadata-multiple?forceColorscape=' + forceColorscape, {ids: libraryIds, force: force});
   }

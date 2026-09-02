@@ -984,6 +984,7 @@ public class SeriesRepository(DataContext context, IMapper mapper) : ISeriesRepo
             SeriesFilterField.WantToRead =>
                 // This is handled in the higher level of code as it's more general
                 query,
+            SeriesFilterField.AllowKoboSync => query.HasAllowKoboSync(true, statement.Comparison, (bool) value),
             SeriesFilterField.CollapseSeriesRelationships =>
                 // This is handled in the higher level of code as it's more general
                 query,
@@ -1977,5 +1978,23 @@ public class SeriesRepository(DataContext context, IMapper mapper) : ISeriesRepo
             .FirstOrDefaultAsync(cancellationToken: ct);
 
         return result is { AllSpecial: true } ? result.Count : null;
+    }
+
+    public async Task<int> UpdateAllowKoboSyncAsync(IList<int> seriesIds, bool allowKoboSync,
+        CancellationToken ct = default)
+    {
+        if (seriesIds.Count == 0) return 0;
+
+        return await context.Series
+            .Where(s => seriesIds.Contains(s.Id))
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.AllowKoboSync, allowKoboSync), ct);
+    }
+
+    public async Task<int> UpdateAllowKoboSyncForLibraryAsync(int libraryId, bool allowKoboSync,
+        CancellationToken ct = default)
+    {
+        return await context.Series
+            .Where(s => s.LibraryId == libraryId)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.AllowKoboSync, allowKoboSync), ct);
     }
 }

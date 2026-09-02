@@ -321,7 +321,7 @@ export class FilterUtilitiesService {
         ] as T[];
       case 'series':
         return [
-          SeriesFilterField.WantToRead, SeriesFilterField.CollapseSeriesRelationships
+          SeriesFilterField.WantToRead, SeriesFilterField.CollapseSeriesRelationships, SeriesFilterField.AllowKoboSync
         ] as unknown as T[];
       case 'person':
         return [] as unknown as T[];

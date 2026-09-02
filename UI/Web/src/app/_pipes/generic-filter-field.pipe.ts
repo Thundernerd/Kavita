@@ -147,6 +147,8 @@ export class GenericFilterFieldPipe implements PipeTransform {
         return translate('filter-field-pipe.file-path');
       case SeriesFilterField.WantToRead:
         return translate('filter-field-pipe.want-to-read');
+      case SeriesFilterField.AllowKoboSync:
+        return translate('filter-field-pipe.allow-kobo-sync');
       case SeriesFilterField.ReadingDate:
         return translate('filter-field-pipe.read-date');
       case SeriesFilterField.ReadLast:

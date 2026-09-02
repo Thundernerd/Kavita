@@ -221,6 +221,19 @@
               </app-setting-switch>
             </div>
 
+            @if (library) {
+              <div class="row g-0 mb-4">
+                <app-setting-button [subtitle]="t('kobo-sync-all-series-tooltip')">
+                  <button type="button" class="btn btn-secondary btn-sm mb-2 me-2"
+                          [disabled]="!libraryForm.get('allowKoboSync')?.value"
+                          (click)="updateAllSeriesKoboSync(true)">{{t('enable-kobo-all-series')}}</button>
+                  <button type="button" class="btn btn-secondary btn-sm mb-2"
+                          [disabled]="!libraryForm.get('allowKoboSync')?.value"
+                          (click)="updateAllSeriesKoboSync(false)">{{t('disable-kobo-all-series')}}</button>
+                </app-setting-button>
+              </div>
+            }
+
             <div class="row g-0 mt-4 mb-4">
               <app-setting-switch [title]="t('folder-watching-label')" [subtitle]="t('folder-watching-tooltip')">
                 <ng-template>

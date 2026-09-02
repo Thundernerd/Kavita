@@ -180,7 +180,7 @@ export class BulkSelectionService {
     const allowedActions = [
       Action.AddToReadingList, Action.MarkAsRead, Action.MarkAsReadWithSession, Action.MarkAsUnread,
       Action.AddToCollection, Action.Delete, Action.AddToWantToReadList, Action.RemoveFromWantToReadList,
-      Action.SetReadingProfile, Action.Download,
+      Action.SetReadingProfile, Action.Download, Action.AllowKoboSync, Action.ExcludeFromKoboSync,
     ];
     const shouldRender = this.registeredShouldRender ?? this.actionFactory.dummyShouldRender;
 

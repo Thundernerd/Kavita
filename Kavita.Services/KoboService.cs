@@ -1073,6 +1073,7 @@ public partial class KoboService(
         // Native EPUB or CBZ/CBR (extension / path). PDF-only is excluded.
         return unitOfWork.DataContext.Chapter
             .Where(c => libraryIds.Contains(c.Volume.Series.LibraryId))
+            .Where(c => c.Volume.Series.AllowKoboSync)
             .Where(KoboEligibleFormats.ChapterHasEligibleFile);
     }
 
@@ -1220,7 +1221,8 @@ public partial class KoboService(
         if (libraryIds.Count == 0) return null;
 
         var query = unitOfWork.DataContext.Chapter
-            .Where(c => libraryIds.Contains(c.Volume.Series.LibraryId));
+            .Where(c => libraryIds.Contains(c.Volume.Series.LibraryId))
+            .Where(c => c.Volume.Series.AllowKoboSync);
         if (requireEligibleFormat)
         {
             query = query.Where(KoboEligibleFormats.ChapterHasEligibleFile);

@@ -285,11 +285,20 @@ public class KoboConversionService(
     public async Task ConvertSeriesForKoboAsync(int seriesId, CancellationToken ct = default)
     {
         var series = await unitOfWork.DataContext.Series
+            .Include(s => s.Library)
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == seriesId, ct);
         if (series == null)
         {
             logger.LogWarning("Kobo series convert: series {SeriesId} not found", seriesId);
+            return;
+        }
+
+        if (!series.AllowKoboSync || series.Library is { AllowKoboSync: false })
+        {
+            logger.LogInformation(
+                "Kobo series convert skipped for {SeriesName}: series or library does not allow Kobo sync",
+                series.Name);
             return;
         }
 
@@ -414,6 +423,7 @@ public class KoboConversionService(
             .Include(c => c.Files)
             .Include(c => c.Volume).ThenInclude(v => v.Series).ThenInclude(s => s.Library)
             .Where(filter)
+            .Where(c => c.Volume.Series.AllowKoboSync && c.Volume.Series.Library.AllowKoboSync)
             .AsSplitQuery()
             .ToListAsync(ct);
 
