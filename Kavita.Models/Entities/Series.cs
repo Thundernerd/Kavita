@@ -99,6 +99,11 @@ public class Series : IEntityDate, IHasReadTimeEstimate, IHasCoverImage, IHasMet
     /// overwrite it during a metadata match
     /// </summary>
     public bool NameLocked { get; set; }
+    /// <summary>
+    /// Allow chapters in this series to appear on Kobo sync when the parent library allows it
+    /// and the server feature is enabled. Defaults to true so existing libraries keep current behavior.
+    /// </summary>
+    public bool AllowKoboSync { get; set; } = true;
 
     /// <summary>
     /// When a Chapter was last added onto the Series

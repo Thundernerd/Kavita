@@ -90,6 +90,13 @@ public interface IKoboConversionService
     Task ClearConversionCacheAsync(CancellationToken ct = default);
 
     /// <summary>
+    /// Deletes conversion-cache artifacts for series that cannot sync (series or parent library
+    /// <c>AllowKoboSync</c> is false). Leaves eligible series untouched. Does not delete native library files.
+    /// Returns the number of series or chapter cache directories removed.
+    /// </summary>
+    Task<int> ClearIneligibleSeriesConversionCacheAsync(CancellationToken ct = default);
+
+    /// <summary>
     /// Enforces configured archive→EPUB and EPUB→KEPUB byte caps by deleting least-recently-accessed
     /// artifacts until each pool is under budget. No-op when a cap is unset/unlimited.
     /// </summary>

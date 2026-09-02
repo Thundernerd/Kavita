@@ -73,6 +73,14 @@ public static class ComparisonProfile
     ];
 
     /// <summary>
+    /// Boolean fields: Equal, NotEqual
+    /// </summary>
+    public static readonly HashSet<FilterComparison> Boolean =
+    [
+        FilterComparison.Equal, FilterComparison.NotEqual,
+    ];
+
+    /// <summary>
     /// Throws <see cref="KavitaException"/> if the comparison is not in the allowed set.
     /// </summary>
     /// <param name="comparison">The comparison to validate</param>

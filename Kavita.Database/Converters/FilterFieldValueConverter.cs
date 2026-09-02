@@ -97,6 +97,7 @@ public static class SeriesFilterFieldValueConverter
                 .Select(int.Parse)
                 .ToList(),
             SeriesFilterField.WantToRead => bool.Parse(value),
+            SeriesFilterField.AllowKoboSync => bool.Parse(value),
             SeriesFilterField.ReadProgress => string.IsNullOrEmpty(value) ? 0f : value.AsFloat(),
             SeriesFilterField.ReadingDate => DateTime.Parse(value, CultureInfo.InvariantCulture),
             SeriesFilterField.ReadLast => int.Parse(value),

@@ -66,10 +66,9 @@ public enum SeriesFilterField
     /// If presents in the filter overwrites <see cref="AppUserPreferences.CollapseSeriesRelationships"/>
     /// </summary>
     CollapseSeriesRelationships = 34,
+    /// <summary>
+    /// Whether the series is allowed to appear on Kobo sync
+    /// </summary>
+    AllowKoboSync = 35,
 }
-
-
-
-
-
 

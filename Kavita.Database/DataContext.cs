@@ -190,6 +190,9 @@ public sealed class DataContext : IdentityDbContext<AppUser, AppRole, int,
         builder.Entity<Library>()
             .Property(b => b.EnableMetadata)
             .HasDefaultValue(true);
+        builder.Entity<Series>()
+            .Property(b => b.AllowKoboSync)
+            .HasDefaultValue(true);
 
         builder.Entity<AppUserKoboSyncedChapter>(entity =>
         {

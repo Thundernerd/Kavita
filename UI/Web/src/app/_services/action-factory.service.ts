@@ -75,6 +75,9 @@ export class ActionFactoryService {
       (action, entity) => this.actionService.handleSeriesAction(action, entity),
       (action, entity, user) => {
         if (action.action === Action.RemoveFromOnDeck) return onDeck
+        if (action.action === Action.ConvertForKobo && entity?.allowKoboSync === false) return false;
+        if (action.action === Action.AllowKoboSync && entity && entity.allowKoboSync !== false) return false;
+        if (action.action === Action.ExcludeFromKoboSync && entity && entity.allowKoboSync === false) return false;
 
         return shouldRenderFunc(action, entity, user);
       }
@@ -695,6 +698,28 @@ export class ActionFactoryService {
             action: Action.ConvertForKobo,
             title: 'convert-for-kobo',
             description: 'convert-for-kobo-tooltip',
+
+            callback: this.dummyCallback,
+            shouldRender: this.dummyShouldRender,
+
+            requiredRoles: [Role.Admin],
+            children: [],
+          },
+          {
+            action: Action.AllowKoboSync,
+            title: 'allow-kobo-sync',
+            description: 'allow-kobo-sync-tooltip',
+
+            callback: this.dummyCallback,
+            shouldRender: this.dummyShouldRender,
+
+            requiredRoles: [Role.Admin],
+            children: [],
+          },
+          {
+            action: Action.ExcludeFromKoboSync,
+            title: 'exclude-from-kobo-sync',
+            description: 'exclude-from-kobo-sync-tooltip',
 
             callback: this.dummyCallback,
             shouldRender: this.dummyShouldRender,

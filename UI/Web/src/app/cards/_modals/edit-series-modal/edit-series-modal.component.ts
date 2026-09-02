@@ -29,6 +29,7 @@ import {EditListComponent} from "../../../shared/edit-list/edit-list.component";
 import {AccountService} from "../../../_services/account.service";
 import {SettingButtonComponent} from "../../../settings/_components/setting-button/setting-button.component";
 import {SettingItemComponent} from "../../../settings/_components/setting-item/setting-item.component";
+import {SettingSwitchComponent} from "../../../settings/_components/setting-switch/setting-switch.component";
 import {LicenseService} from "../../../_services/license.service";
 import {DecimalPipe, NgTemplateOutlet, TitleCasePipe} from "@angular/common";
 import {BreakpointService} from "../../../_services/breakpoint.service";
@@ -93,6 +94,7 @@ import {FormFieldDirective} from "../../../_directives/form-field.directive";
     EditListComponent,
     SettingButtonComponent,
     SettingItemComponent,
+    SettingSwitchComponent,
     NgTemplateOutlet,
     DecimalPipe,
     EditExternalMetadataFormComponent,
@@ -135,6 +137,7 @@ export class EditSeriesModalComponent implements OnInit {
 
   seriesVolumes: any[] = [];
   isLoadingVolumes = signal<boolean>(false);
+  libraryAllowsKoboSync = signal(false);
   /**
    * A copy of the series from init. This is used to compare values for name fields to see if lock was modified
    */
@@ -199,12 +202,26 @@ export class EditSeriesModalComponent implements OnInit {
       rating: new FormControl(this.series.userRating, []),
 
       coverImageLocked: new FormControl(this.series.coverImageLocked, []),
+      allowKoboSync: new FormControl(this.series.allowKoboSync ?? true, []),
 
       ageRating: new FormControl('', []),
       publicationStatus: new FormControl('', []),
       language: new FormControl('', []),
       releaseYear: new FormControl('', [Validators.minLength(4), Validators.maxLength(4), Validators.pattern(/([1-9]\d{3})|[0]{1}/)]),
       metadataProviderOverride: new FormControl<MetadataProvider | null>(this.series.metadataProviderOverride ?? null, []),
+    });
+
+    this.libraryService.getLibraries().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(libraries => {
+      const library = libraries.find(l => l.id === this.series.libraryId);
+      const allowed = library?.allowKoboSync ?? false;
+      this.libraryAllowsKoboSync.set(allowed);
+      const control = this.editSeriesForm.get('allowKoboSync');
+      if (allowed) {
+        control?.enable({emitEvent: false});
+      } else {
+        control?.disable({emitEvent: false});
+      }
+      this.cdRef.markForCheck();
     });
 
     addMetadataIdControls(this.editSeriesForm, this.series);

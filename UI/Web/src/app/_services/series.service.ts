@@ -190,6 +190,10 @@ export class SeriesService {
     return this.httpClient.post(this.baseUrl + `series/convert-kobo?seriesId=${seriesId}`, {});
   }
 
+  updateKoboSync(seriesIds: Array<number>, allowKoboSync: boolean) {
+    return this.httpClient.post<number>(this.baseUrl + 'series/kobo-sync', {seriesIds, allowKoboSync});
+  }
+
   getMetadata(seriesId: number) {
     return this.httpClient.get<SeriesMetadata>(this.baseUrl + 'series/metadata?seriesId=' + seriesId);
   }

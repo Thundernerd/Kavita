@@ -226,6 +226,18 @@ export class ActionService {
           map(() => this.fromAction(action, series, 'none'))
         );
 
+      case Action.AllowKoboSync:
+        return this.seriesService.updateKoboSync([series.id], true).pipe(
+          tap(() => this.toastr.success(translate('toasts.kobo-sync-series-enabled', {count: 1}))),
+          map(() => this.fromAction(action, {...series, allowKoboSync: true}, 'update'))
+        );
+
+      case Action.ExcludeFromKoboSync:
+        return this.seriesService.updateKoboSync([series.id], false).pipe(
+          tap(() => this.toastr.success(translate('toasts.kobo-sync-series-disabled', {count: 1}))),
+          map(() => this.fromAction(action, {...series, allowKoboSync: false}, 'update'))
+        );
+
       case Action.Delete:
         return from(this.confirmService.confirm(translate('toasts.confirm-delete-series'))).pipe(
           filter(confirmed => confirmed),
@@ -1102,6 +1114,24 @@ export class ActionService {
       case Action.Download:
         for (const s of series) { this.downloadService.download(DownloadEntityType.Series, s, s.libraryId, s.id); }
         return of(this.fromAction(action, series, 'none'));
+
+      case Action.AllowKoboSync:
+        return this.seriesService.updateKoboSync(series.map(s => s.id), true).pipe(
+          tap(() => {
+            series.forEach(s => s.allowKoboSync = true);
+            this.toastr.success(translate('toasts.kobo-sync-series-enabled', {count: series.length}));
+          }),
+          map(() => this.fromAction(action, series, 'update'))
+        );
+
+      case Action.ExcludeFromKoboSync:
+        return this.seriesService.updateKoboSync(series.map(s => s.id), false).pipe(
+          tap(() => {
+            series.forEach(s => s.allowKoboSync = false);
+            this.toastr.success(translate('toasts.kobo-sync-series-disabled', {count: series.length}));
+          }),
+          map(() => this.fromAction(action, series, 'update'))
+        );
 
       default:
         return of(this.fromAction(action, series, 'none'));

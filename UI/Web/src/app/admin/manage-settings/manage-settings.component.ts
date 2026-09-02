@@ -13,7 +13,10 @@ import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {DefaultValuePipe} from "../../_pipes/default-value.pipe";
 import {EnterBlurDirective} from "../../_directives/enter-blur.directive";
 import {LogLevelPipe} from "../../_pipes/log-level.pipe";
-import {DirectoryPickerComponent, DirectoryPickerResult} from '../_modals/directory-picker/directory-picker.component';
+import {
+  DirectoryPickerModalComponent,
+  DirectoryPickerResult
+} from '../_modals/directory-picker/directory-picker-modal.component';
 import {ModalService} from "../../_services/modal.service";
 import {ServerService} from "../../_services/server.service";
 import {ValidationErrorsComponent} from "../../shared/_components/validation-errors/validation-errors.component";
@@ -289,7 +292,7 @@ export class ManageSettingsComponent implements OnInit {
   }
 
   openDirectoryChooser(existingDirectory: string, formControl: string) {
-    const modalRef = this.modalService.open(DirectoryPickerComponent);
+    const modalRef = this.modalService.open(DirectoryPickerModalComponent);
     modalRef.setInput('startingFolder', existingDirectory || '');
     modalRef.setInput('helpUrl', '');
     modalRef.closed.subscribe((closeResult: DirectoryPickerResult) => {

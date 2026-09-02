@@ -71,6 +71,8 @@ export class FilterFieldPipe implements PipeTransform {
         return this.translocoService.translate('filter-field-pipe.file-path');
       case SeriesFilterField.WantToRead:
         return this.translocoService.translate('filter-field-pipe.want-to-read');
+      case SeriesFilterField.AllowKoboSync:
+        return this.translocoService.translate('filter-field-pipe.allow-kobo-sync');
       case SeriesFilterField.ReadingDate:
         return this.translocoService.translate('filter-field-pipe.read-date');
         case SeriesFilterField.ReadLast:

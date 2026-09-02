@@ -384,6 +384,22 @@ export class LibrarySettingsModalComponent implements OnInit {
       });
   }
 
+  async updateAllSeriesKoboSync(allowKoboSync: boolean) {
+    if (!this.library) return;
+
+    const confirmed = await this.confirmService.confirm(translate(
+      allowKoboSync ? 'toasts.confirm-enable-kobo-all-series' : 'toasts.confirm-disable-kobo-all-series'
+    ));
+    if (!confirmed) return;
+
+    this.libraryService.updateSeriesKoboSync(this.library.id, allowKoboSync).subscribe(count => {
+      this.toastr.success(translate(
+        allowKoboSync ? 'toasts.kobo-sync-series-enabled' : 'toasts.kobo-sync-series-disabled',
+        {count}
+      ));
+    });
+  }
+
   async save() {
     const model = this.libraryForm.getRawValue();
     model.folders = this.selectedFolders;
