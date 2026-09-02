@@ -282,6 +282,108 @@ internal sealed class KoboConversionCacheStore(IDirectoryService directoryServic
         }
     }
 
+    /// <summary>
+    /// Deletes nested series folders and legacy chapter-id folders for ineligible Kobo series.
+    /// Skips chapter directories whose ids are in <paramref name="skipChapterIds"/> (in-flight converts).
+    /// Returns the number of series or chapter directories removed.
+    /// </summary>
+    public int DeleteIneligibleSeriesCache(string cacheRoot, IReadOnlySet<int> ineligibleSeriesIds,
+        IReadOnlySet<int> ineligibleChapterIds, IReadOnlySet<int> skipChapterIds)
+    {
+        if (!Directory.Exists(cacheRoot)) return 0;
+        if (ineligibleSeriesIds.Count == 0 && ineligibleChapterIds.Count == 0) return 0;
+
+        var deleted = 0;
+        foreach (var topDir in Directory.GetDirectories(cacheRoot))
+        {
+            var name = Path.GetFileName(topDir);
+            if (int.TryParse(name, out var chapterId))
+            {
+                if (!ineligibleChapterIds.Contains(chapterId) || skipChapterIds.Contains(chapterId))
+                {
+                    continue;
+                }
+
+                if (TryDeleteDirectory(topDir)) deleted++;
+                continue;
+            }
+
+            deleted += DeleteIneligibleSeriesUnderLibrary(topDir, cacheRoot, ineligibleSeriesIds, skipChapterIds);
+        }
+
+        return deleted;
+    }
+
+    private int DeleteIneligibleSeriesUnderLibrary(string libraryDir, string cacheRoot,
+        IReadOnlySet<int> ineligibleSeriesIds, IReadOnlySet<int> skipChapterIds)
+    {
+        if (!Directory.Exists(libraryDir)) return 0;
+
+        var deleted = 0;
+        foreach (var seriesDir in Directory.GetDirectories(libraryDir))
+        {
+            if (!TryParseIdPrefixedFolderName(Path.GetFileName(seriesDir), out var seriesId) ||
+                !ineligibleSeriesIds.Contains(seriesId))
+            {
+                continue;
+            }
+
+            var chapterDirs = Directory.Exists(seriesDir) ? Directory.GetDirectories(seriesDir) : [];
+            var skipInSeries = chapterDirs
+                .Select(d => Path.GetFileName(d))
+                .Any(n => int.TryParse(n, out var cid) && skipChapterIds.Contains(cid));
+
+            if (!skipInSeries)
+            {
+                if (TryDeleteDirectory(seriesDir)) deleted++;
+                continue;
+            }
+
+            foreach (var chapterDir in chapterDirs)
+            {
+                if (!int.TryParse(Path.GetFileName(chapterDir), out var cid) || skipChapterIds.Contains(cid))
+                {
+                    continue;
+                }
+
+                if (TryDeleteDirectory(chapterDir)) deleted++;
+            }
+
+            TryDeleteEmptyAncestors(seriesDir, cacheRoot);
+        }
+
+        TryDeleteEmptyAncestors(libraryDir, cacheRoot);
+        return deleted;
+    }
+
+    private bool TryDeleteDirectory(string path)
+    {
+        try
+        {
+            if (!Directory.Exists(path)) return false;
+            Directory.Delete(path, recursive: true);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(ex, "Could not delete ineligible Kobo cache directory {Path}", path);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Parses <c>{id} - {name}</c> or a bare <c>{id}</c> folder segment.
+    /// </summary>
+    internal static bool TryParseIdPrefixedFolderName(string? name, out int id)
+    {
+        id = 0;
+        if (string.IsNullOrEmpty(name)) return false;
+        if (int.TryParse(name, out id)) return true;
+
+        var sep = name.IndexOf(" - ", StringComparison.Ordinal);
+        return sep > 0 && int.TryParse(name[..sep], out id);
+    }
+
     public static bool IsEpubPoolFile(string path) =>
         path.EndsWith(".epub", StringComparison.OrdinalIgnoreCase) &&
         !path.EndsWith(KoboConversionService.KepubCacheExtension, StringComparison.OrdinalIgnoreCase) &&

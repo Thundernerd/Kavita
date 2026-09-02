@@ -2583,6 +2583,10 @@
         "clear-kobo-conversion-cache-task-desc": "Deletes converted EPUBs and KEPUBs stored for Kobo sync (warm-up and on-download converts). Optional per-pool byte caps enable automatic LRU eviction; Clear still wipes the entire cache.",
         "clear-kobo-conversion-cache-task-success": "Kobo conversion cache has been cleared",
 
+        "clear-ineligible-kobo-conversion-cache-task": "Clear Kobo Cache for Excluded Series",
+        "clear-ineligible-kobo-conversion-cache-task-desc": "Deletes converted EPUBs and KEPUBs only for series that cannot sync (series or library Allow Kobo Sync is off). Eligible series and original library files are not touched.",
+        "clear-ineligible-kobo-conversion-cache-task-success": "Removed {{count}} Kobo conversion cache folders for excluded series",
+
         "clean-up-want-to-read-task": "Clean up Want to Read",
         "clean-up-want-to-read-task-desc": "Removes any series that users have fully read that are within Want to Read and have a publication status of Completed. Runs every 24 hours.",
         "clean-up-want-to-read-task-success": "Want to Read has been cleaned up",

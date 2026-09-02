@@ -69,6 +69,18 @@ public class ServerController(
     }
 
     /// <summary>
+    /// Deletes Kobo conversion-cache artifacts for series that cannot sync (series or library AllowKoboSync is off).
+    /// Leaves eligible series cache in place. Does not delete native library files.
+    /// </summary>
+    [HttpPost("clear-ineligible-kobo-conversion-cache")]
+    public async Task<ActionResult<int>> ClearIneligibleKoboConversionCache()
+    {
+        logger.LogInformation("{UserName} is clearing ineligible-series Kobo conversion cache from admin dashboard",
+            Username!);
+        return Ok(await koboConversionService.ClearIneligibleSeriesConversionCacheAsync(HttpContext.RequestAborted));
+    }
+
+    /// <summary>
     /// Performs an ad-hoc cleanup of Want To Read, by removing want to read series for users, where the series are fully read and in Completed publication status.
     /// </summary>
     /// <returns></returns>

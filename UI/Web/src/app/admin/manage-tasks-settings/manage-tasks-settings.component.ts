@@ -91,6 +91,15 @@ export class ManageTasksSettingsComponent implements OnInit {
       successMessage: 'clear-kobo-conversion-cache-task-success'
     },
     {
+      name: 'clear-ineligible-kobo-conversion-cache-task',
+      description: 'clear-ineligible-kobo-conversion-cache-task-desc',
+      api: this.serverService.clearIneligibleKoboConversionCache(),
+      successMessage: '',
+      successFunction: (count: number) => {
+        this.toastr.success(translate('manage-tasks-settings.clear-ineligible-kobo-conversion-cache-task-success', {count}));
+      }
+    },
+    {
       name: 'clean-up-want-to-read-task',
       description: 'clean-up-want-to-read-task-desc',
       api: this.serverService.cleanupWantToRead(),

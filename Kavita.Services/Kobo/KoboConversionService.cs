@@ -246,6 +246,15 @@ public class KoboConversionService(
                 return;
             }
 
+            var series = chapter.Volume?.Series;
+            if (series == null || !series.AllowKoboSync || series.Library is { AllowKoboSync: false })
+            {
+                logger.LogInformation(
+                    "Background Kobo convert skipped for chapter {ChapterId}: series or library does not allow Kobo sync",
+                    chapterId);
+                return;
+            }
+
             await ConvertChapterIfNeededAsync(chapter, ct);
         }
         catch (Exception ex)
@@ -479,6 +488,42 @@ public class KoboConversionService(
         }
     }
 
+    public async Task<int> ClearIneligibleSeriesConversionCacheAsync(CancellationToken ct = default)
+    {
+        var cacheRoot = await ResolveCacheRootAsync(ct);
+        var context = unitOfWork.DataContext;
+
+        var ineligibleSeriesIds = await context.Series
+            .AsNoTracking()
+            .Where(s => !s.AllowKoboSync || !s.Library.AllowKoboSync)
+            .Select(s => s.Id)
+            .ToListAsync(ct);
+
+        if (ineligibleSeriesIds.Count == 0)
+        {
+            logger.LogInformation("No ineligible Kobo series; conversion cache sweep skipped");
+            return 0;
+        }
+
+        var ineligibleChapterIds = await context.Chapter
+            .AsNoTracking()
+            .Where(c => ineligibleSeriesIds.Contains(c.Volume.SeriesId))
+            .Select(c => c.Id)
+            .ToListAsync(ct);
+
+        var skipChapterIds = InFlight.Keys.ToHashSet();
+        logger.LogInformation(
+            "Clearing Kobo conversion cache for {SeriesCount} ineligible series ({ChapterCount} chapters, skip in-flight {InFlightCount}) at {Path}",
+            ineligibleSeriesIds.Count, ineligibleChapterIds.Count, skipChapterIds.Count, cacheRoot);
+
+        var deleted = _cacheStore.DeleteIneligibleSeriesCache(cacheRoot,
+            ineligibleSeriesIds.ToHashSet(), ineligibleChapterIds.ToHashSet(), skipChapterIds);
+
+        logger.LogInformation("Removed {DeletedCount} ineligible Kobo conversion cache director{Plural}",
+            deleted, deleted == 1 ? "y" : "ies");
+        return deleted;
+    }
+
     public async Task EnforceConversionCacheCapsAsync(CancellationToken ct = default)
     {
         var settings = await unitOfWork.SettingsRepository.GetSettingsDtoAsync(ct);
@@ -490,6 +535,9 @@ public class KoboConversionService(
 
     /// <summary>Test seam: clear process-wide in-flight markers between tests.</summary>
     internal static void ResetInFlightForTests() => InFlight.Clear();
+
+    /// <summary>Test seam: mark a chapter as in-flight so cache wipe skips its directory.</summary>
+    internal static bool TryAddInFlightForTests(int chapterId) => InFlight.TryAdd(chapterId, 0);
 
     /// <summary>Test seam over <see cref="KoboConversionCacheStore.ComputeFingerprint"/>.</summary>
     internal static string ComputeFingerprint(MangaFile file) =>
